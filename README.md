@@ -1,4 +1,4 @@
-# Research Access Gate v2.0.2
+# Research Access Gate v2.0.6
 
 **Site-wide login/registration modal for research chemical e-commerce with 21+ Terms acceptance.**
 
@@ -6,16 +6,16 @@ Built for **Premier Bio Labs** following **January 2026 WordPress best practices
 
 ---
 
-## 🚀 What's New in v2.0.2
+## 🚀 What's New in v2.0.6
 
-This release adds enterprise-grade security features:
+This is a **code quality and standards release** focused on aligning the plugin with the official WordPress Coding Standards for long-term maintainability.
 
-| Feature | Description |
-|---------|-------------|
-| **Rate Limiting** | Brute force protection for login/register endpoints |
-| **CAPTCHA Integration** | Support for reCAPTCHA v2/v3, hCaptcha, Cloudflare Turnstile |
-| **Security Headers** | Content Security Policy (CSP) and other hardening headers |
-| **Configurable License Salt** | Move secret to wp-config.php for better security |
+| Category | Improvement |
+|---|---|
+| **Coding Standards** | Applied WordPress-standard spacing and Yoda conditions across core PHP files |
+| **Security Hardening** | Replaced `__()` with `esc_html__()` for all translatable strings (defense-in-depth) |
+| **Documentation** | Enhanced PHPDoc blocks with @param, @return, @throws annotations |
+| **PHPCS Comments** | Added ignore comments for WooCommerce nonce handling (nonce verified by WC) |
 
 ---
 
@@ -169,6 +169,40 @@ GET /wp-json/rag/v1/license/status
 
 ---
 
+## 🖥️ WP-CLI Commands
+
+The plugin includes comprehensive WP-CLI support for license management.
+
+**Base Command:** `wp rag license`
+
+| Command | Description | Example |
+|---------|-------------|---------|
+| `generate` | Generate new license keys | `wp rag license generate --tier=pro --count=10` |
+| `validate <key>` | Validate a specific license key | `wp rag license validate RAG-PRO0-ABCD-EFGH-IJKL` |
+| `status` | Show current license status | `wp rag license status` |
+| `activate <key>` | Activate a license on this site | `wp rag license activate RAG-PRO0-ABCD-EFGH-IJKL --email=you@example.com` |
+| `deactivate` | Deactivate the current license | `wp rag license deactivate` |
+
+### Generate Options
+
+```bash
+# Generate a single pro license
+wp rag license generate
+
+# Generate 10 unlimited licenses
+wp rag license generate --tier=unlimited --count=10
+
+# Generate developer licenses as CSV
+wp rag license generate --tier=developer --count=5 --format=csv
+
+# Output as JSON
+wp rag license generate --tier=pro --format=json
+```
+
+**Available Tiers:** `single`, `pro`, `unlimited`, `developer`
+
+---
+
 ## 🏗️ Architecture
 
 ```
@@ -182,6 +216,7 @@ research-access-gate/
 │   ├── Frontend.php            # Modal rendering
 │   ├── Admin.php               # Settings page
 │   ├── MuPlugin.php            # MU-Plugin manager
+│   ├── CLI.php                 # WP-CLI commands
 │   ├── Helpers.php             # Utility functions
 │   ├── License.php             # License validation
 │   ├── RateLimiter.php         # Brute force protection
@@ -226,7 +261,7 @@ Declares compatibility with:
 
 ## 🔒 Security Features
 
-### v2.0.2 Security Enhancements
+### v2.0.2+ Security Enhancements
 
 | Feature | Protection |
 |---------|------------|
@@ -361,7 +396,13 @@ Before deploying to production:
 
 ## 🔄 Upgrade Path
 
-### From v2.0.1
+### From v2.0.5
+
+1. Upload new plugin files (or replace via FTP)
+2. No database changes required
+3. Clear any object cache
+
+### From v2.0.1/v2.0.2
 
 1. Upload new plugin files
 2. Deactivate and reactivate plugin
@@ -373,14 +414,24 @@ Before deploying to production:
 1. Backup your settings (screenshot or export)
 2. Deactivate v1.x
 3. Delete v1.x files
-4. Upload v2.0.2
-5. Activate v2.0.2
+4. Upload v2.0.6
+5. Activate v2.0.6
 6. Verify settings migrated (same option key)
 7. Re-install MU-Plugin if used
 
 ---
 
 ## 📜 Changelog
+
+### 2.0.6 (January 2026) - Code Quality & Standards Release
+- **IMPROVEMENT:** Applied WordPress Coding Standards (spacing, Yoda conditions) to core PHP files
+- **SECURITY:** Hardened translations by using `esc_html__()` instead of `__()` for defense-in-depth
+- **DOCS:** Enhanced PHPDoc blocks with @param, @return, @throws annotations
+- **DOCS:** Added phpcs:ignore comments for WooCommerce nonce handling
+- **DOCS:** Updated README.md with comprehensive WP-CLI documentation
+
+### 2.0.5 (January 2026)
+- Initial version provided for external review
 
 ### 2.0.2 (January 2026) - Security Enhancement Release
 - **NEW:** Rate limiting for login/register endpoints (brute force protection)
