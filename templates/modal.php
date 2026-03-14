@@ -134,6 +134,13 @@ defined('ABSPATH') || exit;
             </div>
             <?php endif; ?>
             
+            <?php if ($options['require_organization'] === 'yes'): ?>
+            <div class="rag-field">
+                <label for="rag-organization"><?php esc_html_e('Organization / Institution', 'research-access-gate'); ?> <span class="req">*</span></label>
+                <input type="text" id="rag-organization" name="organization" required autocomplete="organization" placeholder="<?php esc_attr_e('e.g. University of California, Acme Research Labs', 'research-access-gate'); ?>">
+            </div>
+            <?php endif; ?>
+            
             <?php if ($options['require_business'] === 'yes' && !empty($business_types)): ?>
             <div class="rag-field">
                 <label for="rag-business"><?php esc_html_e('Business Type / Industry', 'research-access-gate'); ?> <span class="req">*</span></label>
@@ -158,6 +165,20 @@ defined('ABSPATH') || exit;
                 <div class="rag-terms-box-header"><?php echo esc_html($options['company_name'] . ' ' . $options['terms_title']); ?></div>
                 <div class="rag-terms-box-content"><?php echo wp_kses_post($terms_content); ?></div>
             </div>
+            
+            <!-- Age Confirmation Checkbox -->
+            <?php if ($options['require_age_confirmation'] === 'yes'): ?>
+            <div class="rag-terms-checkbox">
+                <label>
+                    <input type="checkbox" name="age_confirmed" value="1" required>
+                    <span class="rag-checkmark"></span>
+                    <span class="rag-terms-text">
+                        <?php esc_html_e('I confirm that I am at least 21 years of age.', 'research-access-gate'); ?>
+                        <span class="req">*</span>
+                    </span>
+                </label>
+            </div>
+            <?php endif; ?>
             
             <!-- Terms Checkbox -->
             <div class="rag-terms-checkbox">
@@ -346,6 +367,11 @@ defined('ABSPATH') || exit;
         // Convert checkbox to boolean
         if ('terms_accepted' in data) {
             data.terms_accepted = data.terms_accepted === '1';
+        }
+        if ('age_confirmed' in data) {
+            data.age_confirmed = data.age_confirmed === '1';
+        } else {
+            data.age_confirmed = false;
         }
         
         // Get CAPTCHA token

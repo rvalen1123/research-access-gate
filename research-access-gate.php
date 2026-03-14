@@ -3,7 +3,7 @@
  * Plugin Name: Research Access Gate
  * Plugin URI: https://premierbioresearch.com
  * Description: Site-wide login/registration modal with 21+ Terms acceptance for research chemical e-commerce. REST API powered, cache-compatible, MU-plugin option.
- * Version: 2.0.5
+ * Version: 2.1.0
  * Author: Premier Bio Labs
  * Author URI: https://premierbioresearch.com
  * License: GPL v2 or later
@@ -24,7 +24,7 @@ namespace PremierBioLabs\ResearchAccessGate;
 defined('ABSPATH') || exit;
 
 // Plugin constants
-const VERSION = '2.0.5';
+const VERSION = '2.1.0';
 const MIN_PHP = '8.0.0';
 const MIN_WP = '6.4';
 

@@ -131,6 +131,8 @@ class Settings {
                 // For checkboxes that aren't checked, they won't be in $_POST
                 // So we need to handle boolean fields specially
                 if (in_array($key, ['enabled', 'require_business', 'require_phone', 'mu_installed',
+                    'require_organization', 'require_age_confirmation', 'require_email_verification',
+                    'restrict_unverified_purchases',
                     'security_headers_enabled', 'csp_report_only', 'rate_limit_enabled'], true)) {
                     $sanitized[$key] = 'no';
                 } else {
@@ -142,6 +144,8 @@ class Settings {
             $sanitized[$key] = match ($key) {
                 // Boolean toggles
                 'enabled', 'require_business', 'require_phone', 'mu_installed',
+                'require_organization', 'require_age_confirmation',
+                'require_email_verification', 'restrict_unverified_purchases',
                 'security_headers_enabled', 'csp_report_only', 'rate_limit_enabled'
                     => $input[$key] === 'yes' ? 'yes' : 'no',
                 
@@ -205,6 +209,10 @@ class Settings {
             'business_types'      => "Researcher\nDistributor\nClinic",
             'require_business'    => 'yes',
             'require_phone'       => 'yes',
+            'require_organization'      => 'yes',
+            'require_age_confirmation'  => 'yes',
+            'require_email_verification'=> 'yes',
+            'restrict_unverified_purchases' => 'yes',
             'mu_installed'        => 'no',
             
             // Security - CAPTCHA

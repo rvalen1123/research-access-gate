@@ -31,6 +31,7 @@ final class Plugin {
     private MuPlugin $mu_plugin;
     private SecurityHeaders $security_headers;
     private Captcha $captcha;
+    private KYC $kyc;
     
     /**
      * Singleton instance
@@ -60,6 +61,7 @@ final class Plugin {
         $this->mu_plugin = new MuPlugin();
         $this->security_headers = new SecurityHeaders($this->settings);
         $this->captcha = new Captcha($this->settings);
+        $this->kyc = new KYC($this->settings);
         
         if (is_admin()) {
             $this->admin = new Admin($this->settings, $this->mu_plugin);
@@ -75,6 +77,12 @@ final class Plugin {
         
         // Security headers
         $this->security_headers->init();
+        
+        // KYC hooks (admin columns, profile section, checkout restriction)
+        $this->kyc->init();
+        
+        // Email verification callback (front-end GET request)
+        add_action('template_redirect', [$this->kyc, 'handle_email_verification']);
         
         // Frontend hooks (only if licensed or in grace period)
         if ($this->should_enable_gate()) {
@@ -193,6 +201,13 @@ final class Plugin {
      */
     public function security_headers(): SecurityHeaders {
         return $this->security_headers;
+    }
+    
+    /**
+     * Get KYC instance
+     */
+    public function kyc(): KYC {
+        return $this->kyc;
     }
     
     /**
