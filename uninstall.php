@@ -59,6 +59,30 @@ $wpdb->query(
 // );
 
 /**
+ * Clean up KYC-specific user meta
+ * These keys are created by the KYC class and registration flow.
+ * Uncomment the block below if you want to remove ALL user-level KYC data on uninstall.
+ * Note: Retaining this data may be required for regulatory / audit compliance.
+ */
+// $kyc_meta_keys = [
+//     'rag_kyc_status',
+//     'rag_email_verified',
+//     'rag_email_verify_token',
+//     'rag_email_verify_expiry',
+//     'rag_age_confirmed',
+//     'rag_organization',
+//     'rag_phone',
+//     'rag_business_type',
+//     'rag_terms_accepted',
+//     'rag_terms_accepted_at',
+//     'rag_terms_accepted_ip',
+//     'rag_terms_version',
+// ];
+// foreach ( $kyc_meta_keys as $meta_key ) {
+//     $wpdb->delete( $wpdb->usermeta, [ 'meta_key' => $meta_key ] );
+// }
+
+/**
  * Remove MU-Plugin if installed
  */
 $mu_file = WPMU_PLUGIN_DIR . '/research-access-gate-loader.php';

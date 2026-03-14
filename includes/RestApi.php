@@ -268,14 +268,24 @@ class RestApi {
         $last_name     = sanitize_text_field($request->get_param('last_name') ?? '');
         $phone         = sanitize_text_field($request->get_param('phone') ?? '');
         $business_type = sanitize_text_field($request->get_param('business_type') ?? '');
+        $organization  = sanitize_text_field($request->get_param('organization') ?? '');
         $password      = $request->get_param('password') ?? '';
         $terms         = (bool) $request->get_param('terms_accepted');
+        $age_confirmed = (bool) $request->get_param('age_confirmed');
         $redirect      = $request->get_param('redirect') ?? '/';
         
         // Validation
-        $validation_error = $this->validate_registration(
-            $email, $first_name, $last_name, $phone, $business_type, $password, $terms
-        );
+        $validation_error = $this->validate_registration([
+            'email'         => $email,
+            'first_name'    => $first_name,
+            'last_name'     => $last_name,
+            'phone'         => $phone,
+            'business_type' => $business_type,
+            'organization'  => $organization,
+            'password'      => $password,
+            'terms'         => $terms,
+            'age_confirmed' => $age_confirmed,
+        ]);
         
         if ($validation_error !== null) {
             // Record failed attempt (validation failure)
@@ -316,7 +326,16 @@ class RestApi {
             'last_name'     => $last_name,
             'phone'         => $phone,
             'business_type' => $business_type,
+            'organization'  => $organization,
         ]);
+        
+        // Set initial KYC status and trigger email verification
+        $kyc = rag()->kyc();
+        $kyc->set_initial_status($user_id, $organization, $age_confirmed);
+        
+        if ($this->settings->get('require_email_verification') === 'yes') {
+            $kyc->send_verification_email($user_id);
+        }
         
         // Auto-login
         wp_set_current_user($user_id);
@@ -339,16 +358,31 @@ class RestApi {
     
     /**
      * Validate registration data
+     *
+     * @param array $data {
+     *     Registration data.
+     *     @type string $email         User email.
+     *     @type string $first_name    First name.
+     *     @type string $last_name     Last name.
+     *     @type string $phone         Phone number.
+     *     @type string $business_type Business type.
+     *     @type string $organization  Organization / institution name.
+     *     @type string $password      Password.
+     *     @type bool   $terms         Whether terms were accepted.
+     *     @type bool   $age_confirmed Whether 21+ age was confirmed.
+     * }
+     * @return \WP_Error|null Error or null on success.
      */
-    private function validate_registration(
-        string $email,
-        string $first_name,
-        string $last_name,
-        string $phone,
-        string $business_type,
-        string $password,
-        bool $terms
-    ): ?\WP_Error {
+    private function validate_registration(array $data): ?\WP_Error {
+        $email         = $data['email'];
+        $first_name    = $data['first_name'];
+        $last_name     = $data['last_name'];
+        $phone         = $data['phone'];
+        $business_type = $data['business_type'];
+        $organization  = $data['organization'];
+        $password      = $data['password'];
+        $terms         = $data['terms'];
+        $age_confirmed = $data['age_confirmed'];
         if (empty($email) || !is_email($email)) {
             return new \WP_Error(
                 'invalid_email',
@@ -389,6 +423,14 @@ class RestApi {
             );
         }
         
+        if ($this->settings->get('require_organization') === 'yes' && empty($organization)) {
+            return new \WP_Error(
+                'missing_organization',
+                __('Please enter your organization or institution name.', 'research-access-gate'),
+                ['status' => 400]
+            );
+        }
+        
         if (strlen($password) < 8) {
             return new \WP_Error(
                 'weak_password',
@@ -401,6 +443,14 @@ class RestApi {
             return new \WP_Error(
                 'terms_not_accepted',
                 __('You must acknowledge and confirm the Terms of Use.', 'research-access-gate'),
+                ['status' => 400]
+            );
+        }
+        
+        if ($this->settings->get('require_age_confirmation') === 'yes' && !$age_confirmed) {
+            return new \WP_Error(
+                'age_not_confirmed',
+                __('You must confirm that you are at least 21 years of age.', 'research-access-gate'),
                 ['status' => 400]
             );
         }
@@ -437,10 +487,12 @@ class RestApi {
         update_user_meta($user_id, 'billing_first_name', $data['first_name']);
         update_user_meta($user_id, 'billing_last_name', $data['last_name']);
         update_user_meta($user_id, 'billing_phone', $data['phone']);
+        update_user_meta($user_id, 'billing_company', $data['organization']);
         
         // Plugin-specific meta
         update_user_meta($user_id, 'rag_phone', $data['phone']);
         update_user_meta($user_id, 'rag_business_type', $data['business_type']);
+        update_user_meta($user_id, 'rag_organization', $data['organization']);
         
         // Terms acceptance with audit trail
         update_user_meta($user_id, 'rag_terms_accepted', 'yes');
@@ -595,9 +647,19 @@ class RestApi {
                 'type'              => 'string',
                 'sanitize_callback' => 'sanitize_text_field',
             ],
+            'organization' => [
+                'required'          => false,
+                'type'              => 'string',
+                'sanitize_callback' => 'sanitize_text_field',
+            ],
             'terms_accepted' => [
                 'required' => true,
                 'type'     => 'boolean',
+            ],
+            'age_confirmed' => [
+                'required'  => false,
+                'type'      => 'boolean',
+                'default'   => false,
             ],
             'redirect' => [
                 'required'          => false,

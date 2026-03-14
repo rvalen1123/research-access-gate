@@ -166,6 +166,16 @@ $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'general';
                                 </td>
                             </tr>
                             <tr>
+                                <th scope="row"><?php esc_html_e('Require Organization', 'research-access-gate'); ?></th>
+                                <td>
+                                    <label class="rag-toggle">
+                                        <input type="checkbox" name="rag_settings[require_organization]" value="yes" <?php checked($options['require_organization'] ?? 'yes', 'yes'); ?>>
+                                        <span class="rag-toggle-slider"></span>
+                                    </label>
+                                    <p class="description"><?php esc_html_e('Collect organization / institution name for KYC compliance.', 'research-access-gate'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
                                 <th scope="row"><?php esc_html_e('Require Business Type', 'research-access-gate'); ?></th>
                                 <td>
                                     <label class="rag-toggle">
@@ -179,6 +189,45 @@ $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'general';
                                 <td>
                                     <textarea name="rag_settings[business_types]" rows="4" class="regular-text"><?php echo esc_textarea($options['business_types']); ?></textarea>
                                     <p class="description"><?php esc_html_e('One per line. These appear in the dropdown.', 'research-access-gate'); ?></p>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                    <!-- KYC / Verification Settings -->
+                    <div class="rag-card">
+                        <h2 class="rag-card-title"><?php esc_html_e('KYC / Verification', 'research-access-gate'); ?></h2>
+                        <p class="rag-card-description"><?php esc_html_e('Configure Know Your Customer verification requirements for research compliance.', 'research-access-gate'); ?></p>
+                        
+                        <table class="form-table">
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Require Age Confirmation', 'research-access-gate'); ?></th>
+                                <td>
+                                    <label class="rag-toggle">
+                                        <input type="checkbox" name="rag_settings[require_age_confirmation]" value="yes" <?php checked($options['require_age_confirmation'] ?? 'yes', 'yes'); ?>>
+                                        <span class="rag-toggle-slider"></span>
+                                    </label>
+                                    <p class="description"><?php esc_html_e('Show a separate "I am 21+" checkbox on registration (in addition to general Terms).', 'research-access-gate'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Email Verification', 'research-access-gate'); ?></th>
+                                <td>
+                                    <label class="rag-toggle">
+                                        <input type="checkbox" name="rag_settings[require_email_verification]" value="yes" <?php checked($options['require_email_verification'] ?? 'yes', 'yes'); ?>>
+                                        <span class="rag-toggle-slider"></span>
+                                    </label>
+                                    <p class="description"><?php esc_html_e('Send a verification email on registration. Users must confirm their email to be KYC-verified.', 'research-access-gate'); ?></p>
+                                </td>
+                            </tr>
+                            <tr>
+                                <th scope="row"><?php esc_html_e('Restrict Unverified Purchases', 'research-access-gate'); ?></th>
+                                <td>
+                                    <label class="rag-toggle">
+                                        <input type="checkbox" name="rag_settings[restrict_unverified_purchases]" value="yes" <?php checked($options['restrict_unverified_purchases'] ?? 'yes', 'yes'); ?>>
+                                        <span class="rag-toggle-slider"></span>
+                                    </label>
+                                    <p class="description"><?php esc_html_e('Block WooCommerce checkout for users who have not completed KYC verification.', 'research-access-gate'); ?></p>
                                 </td>
                             </tr>
                         </table>
@@ -280,6 +329,9 @@ $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'general';
                         <ul>
                             <li><?php esc_html_e('Non-logged-in users see a full-screen login/register modal', 'research-access-gate'); ?></li>
                             <li><?php esc_html_e('Registration requires 21+ Terms acknowledgment', 'research-access-gate'); ?></li>
+                            <li><?php esc_html_e('KYC data (organization, business type, age, phone) collected at sign-up', 'research-access-gate'); ?></li>
+                            <li><?php esc_html_e('Email verification confirms identity', 'research-access-gate'); ?></li>
+                            <li><?php esc_html_e('Admins can review and verify/reject users from the Users list', 'research-access-gate'); ?></li>
                             <li><?php esc_html_e('WooCommerce checkout also enforces Terms', 'research-access-gate'); ?></li>
                             <li><?php esc_html_e('My Account and excluded pages are accessible without login', 'research-access-gate'); ?></li>
                         </ul>
@@ -551,6 +603,18 @@ $current_tab = isset($_GET['tab']) ? sanitize_key($_GET['tab']) : 'general';
                             <li class="<?php echo $license_salt_from_constant ? 'is-secure' : 'is-warning'; ?>">
                                 <span class="dashicons <?php echo $license_salt_from_constant ? 'dashicons-yes-alt' : 'dashicons-warning'; ?>"></span>
                                 <?php esc_html_e('License Salt Configured', 'research-access-gate'); ?>
+                            </li>
+                            <li class="<?php echo ($options['require_email_verification'] ?? 'yes') === 'yes' ? 'is-secure' : 'is-warning'; ?>">
+                                <span class="dashicons <?php echo ($options['require_email_verification'] ?? 'yes') === 'yes' ? 'dashicons-yes-alt' : 'dashicons-warning'; ?>"></span>
+                                <?php esc_html_e('Email Verification (KYC)', 'research-access-gate'); ?>
+                            </li>
+                            <li class="<?php echo ($options['require_age_confirmation'] ?? 'yes') === 'yes' ? 'is-secure' : 'is-warning'; ?>">
+                                <span class="dashicons <?php echo ($options['require_age_confirmation'] ?? 'yes') === 'yes' ? 'dashicons-yes-alt' : 'dashicons-warning'; ?>"></span>
+                                <?php esc_html_e('Age 21+ Confirmation (KYC)', 'research-access-gate'); ?>
+                            </li>
+                            <li class="<?php echo ($options['restrict_unverified_purchases'] ?? 'yes') === 'yes' ? 'is-secure' : 'is-warning'; ?>">
+                                <span class="dashicons <?php echo ($options['restrict_unverified_purchases'] ?? 'yes') === 'yes' ? 'dashicons-yes-alt' : 'dashicons-warning'; ?>"></span>
+                                <?php esc_html_e('Purchase Restriction (KYC)', 'research-access-gate'); ?>
                             </li>
                         </ul>
                         
