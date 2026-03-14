@@ -275,10 +275,17 @@ class RestApi {
         $redirect      = $request->get_param('redirect') ?? '/';
         
         // Validation
-        $validation_error = $this->validate_registration(
-            $email, $first_name, $last_name, $phone, $business_type,
-            $organization, $password, $terms, $age_confirmed
-        );
+        $validation_error = $this->validate_registration([
+            'email'         => $email,
+            'first_name'    => $first_name,
+            'last_name'     => $last_name,
+            'phone'         => $phone,
+            'business_type' => $business_type,
+            'organization'  => $organization,
+            'password'      => $password,
+            'terms'         => $terms,
+            'age_confirmed' => $age_confirmed,
+        ]);
         
         if ($validation_error !== null) {
             // Record failed attempt (validation failure)
@@ -351,18 +358,31 @@ class RestApi {
     
     /**
      * Validate registration data
+     *
+     * @param array $data {
+     *     Registration data.
+     *     @type string $email         User email.
+     *     @type string $first_name    First name.
+     *     @type string $last_name     Last name.
+     *     @type string $phone         Phone number.
+     *     @type string $business_type Business type.
+     *     @type string $organization  Organization / institution name.
+     *     @type string $password      Password.
+     *     @type bool   $terms         Whether terms were accepted.
+     *     @type bool   $age_confirmed Whether 21+ age was confirmed.
+     * }
+     * @return \WP_Error|null Error or null on success.
      */
-    private function validate_registration(
-        string $email,
-        string $first_name,
-        string $last_name,
-        string $phone,
-        string $business_type,
-        string $organization,
-        string $password,
-        bool $terms,
-        bool $age_confirmed
-    ): ?\WP_Error {
+    private function validate_registration(array $data): ?\WP_Error {
+        $email         = $data['email'];
+        $first_name    = $data['first_name'];
+        $last_name     = $data['last_name'];
+        $phone         = $data['phone'];
+        $business_type = $data['business_type'];
+        $organization  = $data['organization'];
+        $password      = $data['password'];
+        $terms         = $data['terms'];
+        $age_confirmed = $data['age_confirmed'];
         if (empty($email) || !is_email($email)) {
             return new \WP_Error(
                 'invalid_email',

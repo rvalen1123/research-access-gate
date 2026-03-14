@@ -169,8 +169,8 @@ defined('ABSPATH') || exit;
             <!-- Age Confirmation Checkbox -->
             <?php if ($options['require_age_confirmation'] === 'yes'): ?>
             <div class="rag-terms-checkbox">
-                <label>
-                    <input type="checkbox" name="age_confirmed" value="1" required>
+                <label for="rag-age-confirmed">
+                    <input type="checkbox" name="age_confirmed" id="rag-age-confirmed" value="1" required>
                     <span class="rag-checkmark"></span>
                     <span class="rag-terms-text">
                         <?php esc_html_e('I confirm that I am at least 21 years of age.', 'research-access-gate'); ?>

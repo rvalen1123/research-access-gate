@@ -68,6 +68,7 @@ $wpdb->query(
 //     'rag_kyc_status',
 //     'rag_email_verified',
 //     'rag_email_verify_token',
+//     'rag_email_verify_expiry',
 //     'rag_age_confirmed',
 //     'rag_organization',
 //     'rag_phone',

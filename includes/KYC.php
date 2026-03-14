@@ -30,6 +30,7 @@ class KYC {
     public const META_KYC_STATUS        = 'rag_kyc_status';
     public const META_EMAIL_VERIFIED     = 'rag_email_verified';
     public const META_EMAIL_VERIFY_TOKEN = 'rag_email_verify_token';
+    public const META_EMAIL_VERIFY_EXPIRY = 'rag_email_verify_expiry';
     public const META_AGE_CONFIRMED      = 'rag_age_confirmed';
     public const META_ORGANIZATION       = 'rag_organization';
 
@@ -74,7 +75,7 @@ class KYC {
      * Set initial KYC data for a newly registered user.
      *
      * @param int    $user_id      WordPress user ID.
-     * @param string $organization Organisation / institution name.
+     * @param string $organization Organization / institution name.
      * @param bool   $age_confirmed Whether the user confirmed 21+ age.
      */
     public function set_initial_status(int $user_id, string $organization, bool $age_confirmed): void {
@@ -149,8 +150,9 @@ class KYC {
             return false;
         }
 
-        $token = wp_generate_password(48, false);
+        $token = bin2hex(random_bytes(32));
         update_user_meta($user_id, self::META_EMAIL_VERIFY_TOKEN, hash('sha256', $token));
+        update_user_meta($user_id, self::META_EMAIL_VERIFY_EXPIRY, time() + 2 * DAY_IN_SECONDS);
 
         $verify_url = add_query_arg([
             'rag_verify' => '1',
@@ -223,9 +225,23 @@ class KYC {
             return;
         }
 
+        // Check token expiration (48 hours)
+        $expiry = (int) get_user_meta($user_id, self::META_EMAIL_VERIFY_EXPIRY, true);
+        if ($expiry > 0 && time() > $expiry) {
+            delete_user_meta($user_id, self::META_EMAIL_VERIFY_TOKEN);
+            delete_user_meta($user_id, self::META_EMAIL_VERIFY_EXPIRY);
+            wp_die(
+                esc_html__('This verification link has expired. Please log in and request a new one.', 'research-access-gate'),
+                esc_html__('Link Expired', 'research-access-gate'),
+                ['response' => 400]
+            );
+            return;
+        }
+
         // Mark verified
         update_user_meta($user_id, self::META_EMAIL_VERIFIED, 'yes');
         delete_user_meta($user_id, self::META_EMAIL_VERIFY_TOKEN);
+        delete_user_meta($user_id, self::META_EMAIL_VERIFY_EXPIRY);
 
         // If all KYC criteria met automatically, promote to verified
         $this->maybe_auto_verify($user_id);
@@ -507,6 +523,7 @@ class KYC {
             self::META_KYC_STATUS,
             self::META_EMAIL_VERIFIED,
             self::META_EMAIL_VERIFY_TOKEN,
+            self::META_EMAIL_VERIFY_EXPIRY,
             self::META_AGE_CONFIRMED,
             self::META_ORGANIZATION,
         ];
